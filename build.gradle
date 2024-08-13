@@ -1,0 +1,40 @@
+ext {
+    springBootVersion = "3.3.2"
+    lombokVersion = "1.18.30"
+}
+
+subprojects {
+    apply plugin: 'java'
+
+    group = 'example.traffic'
+    version = '1.0-SNAPSHOT'
+
+    repositories {
+        mavenCentral()
+    }
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
+    }
+
+
+    dependencies {
+        testImplementation platform('org.junit:junit-bom:5.10.0')
+        testImplementation 'org.junit.jupiter:junit-jupiter'
+
+        compileOnly group: 'org.projectlombok', name: 'lombok', version: "${lombokVersion}"
+        annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.30'
+        testCompileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.30'
+        testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.30'
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+}
+
+
+
+

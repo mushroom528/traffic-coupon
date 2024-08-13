@@ -1,0 +1,5 @@
+rootProject.name = 'traffic-coupon'
+include 'coupon-domain'
+include 'coupon-web'
+include 'coupon-application'
+
