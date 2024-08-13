@@ -2,4 +2,7 @@ dependencies {
     implementation(project(':coupon-domain'))
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter', version: "${springBootVersion}"
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: "${springBootVersion}"
+
+    testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: "${springBootVersion}"
+    testImplementation group: 'com.h2database', name: 'h2', version: '2.2.224'
 }

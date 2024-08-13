@@ -1,6 +1,7 @@
 ext {
     springBootVersion = "3.3.2"
     lombokVersion = "1.18.30"
+    queryDslVersion = "5.1.0"
 }
 
 subprojects {

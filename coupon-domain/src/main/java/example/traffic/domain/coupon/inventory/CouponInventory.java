@@ -2,8 +2,10 @@ package example.traffic.domain.coupon.inventory;
 
 import example.traffic.domain.coupon.Coupon;
 import jakarta.persistence.*;
+import lombok.Getter;
 
 @Entity
+@Getter
 public class CouponInventory {
 
     @Id
@@ -21,5 +23,13 @@ public class CouponInventory {
         couponInventory.coupon = coupon;
         couponInventory.totalCoupons = totalCoupons;
         return couponInventory;
+    }
+
+    public String issueCoupon() {
+        if (issuedCoupons >= totalCoupons) throw new IllegalStateException("No more coupons available to issue.");
+        if (coupon.isExpired()) throw new IllegalStateException("Coupon is expired.");
+        
+        issuedCoupons++;
+        return coupon.generateCouponNumber();
     }
 }
