@@ -6,10 +6,11 @@ import lombok.Getter;
 
 @Entity
 @Getter
+@Table(name = "coupon_inventory")
 public class CouponInventory {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
@@ -28,7 +29,7 @@ public class CouponInventory {
     public String issueCoupon() {
         if (issuedCoupons >= totalCoupons) throw new IllegalStateException("No more coupons available to issue.");
         if (coupon.isExpired()) throw new IllegalStateException("Coupon is expired.");
-        
+
         issuedCoupons++;
         return coupon.generateCouponNumber();
     }
