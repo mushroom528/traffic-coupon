@@ -37,12 +37,13 @@ public class CouponService {
                 .orElseThrow(() -> new IllegalArgumentException("No inventory found for coupon code: " + couponCode));
 
         Coupon coupon = couponInventory.getCoupon();
-        String couponNumber = couponInventory.issueCoupon();
-        saveHistory(username, coupon, couponNumber);
-    }
-
-    private void saveHistory(String username, Coupon coupon, String couponNumber) {
-        CouponHistory history = CouponHistory.of(coupon.getId(), username, couponNumber);
+        CouponHistory history;
+        try {
+            String couponNumber = couponInventory.issueCoupon();
+            history = CouponHistory.successHistory(coupon.getId(), username, couponNumber);
+        } catch (Exception e) {
+            history = CouponHistory.failHistory(coupon.getId(), username, e.getMessage());
+        }
         couponHistoryRepository.save(history);
     }
 

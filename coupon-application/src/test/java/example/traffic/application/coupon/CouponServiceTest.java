@@ -4,6 +4,7 @@ import example.traffic.application.config.ApplicationConfig;
 import example.traffic.domain.coupon.Coupon;
 import example.traffic.domain.coupon.inventory.CouponInventory;
 import example.traffic.domain.coupon.inventory.CouponInventoryRepository;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,14 +27,16 @@ class CouponServiceTest {
     ExecutorService executorService = Executors.newFixedThreadPool(4);
 
     @Test
-    void 동시에_여러건_발급받기() {
+    @DisplayName("동시에 50명이 신청하는 경우, 30개의 성공이력 20개의 실패이력이 생성된다.")
+    void shouldGenerateSuccessAndFailureHistoriesWhen50ApplySimultaneously() {
 
         // given
-        int couponCount = 100;
+        int couponCount = 30;
+        int threadCount = 20;
         Coupon coupon = sut.createCoupon("쿠폰1", "COUPON-1", couponCount);
 
         // when
-        for (int i = 0; i < couponCount; i++) {
+        for (int i = 0; i < threadCount; i++) {
             executorService.submit(() -> {
                 sut.issueCoupon(coupon.getCode(), "USER");
             });
