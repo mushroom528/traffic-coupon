@@ -1,0 +1,7 @@
+dependencies {
+    implementation(project(':coupon-domain'))
+    implementation(project(':coupon-application'))
+
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter', version: "${springBootVersion}"
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: "${springBootVersion}"
+}
