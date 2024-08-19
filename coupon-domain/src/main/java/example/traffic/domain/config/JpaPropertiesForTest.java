@@ -1,15 +1,16 @@
 package example.traffic.domain.config;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.Properties;
 
 @Component
-public class JpaPropertiesImpl implements JpaProperties {
-
+@Profile({"test"})
+public class JpaPropertiesForTest implements JpaProperties {
     public Properties jpaProperties() {
         Properties properties = new Properties();
-        properties.setProperty("hibernate.dialect", "org.hibernate.dialect.MariaDBDialect");
+        properties.setProperty("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
         properties.setProperty("hibernate.show_sql", "true");
         properties.setProperty("hibernate.format_sql", "true");
         properties.setProperty("hibernate.hbm2ddl.auto", "create");
