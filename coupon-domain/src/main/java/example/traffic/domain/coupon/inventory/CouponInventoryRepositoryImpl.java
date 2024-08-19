@@ -18,7 +18,9 @@ public class CouponInventoryRepositoryImpl implements CouponInventoryCustomRepos
     @Override
     public Optional<CouponInventory> findByCouponCode(String couponCode) {
         CouponInventory result = queryFactory.selectFrom(couponInventory)
-                .innerJoin(couponInventory.coupon).on(coupon.code.eq(couponCode))
+                .innerJoin(couponInventory.coupon, coupon)
+                .fetchJoin()
+                .where(coupon.code.eq(couponCode))
                 .fetchOne();
 
         return Optional.ofNullable(result);
