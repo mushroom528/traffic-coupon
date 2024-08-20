@@ -42,6 +42,7 @@ public class CouponService {
         CouponHistory history;
         try {
             String couponNumber = couponInventory.issueCoupon();
+            couponInventoryRepository.save(couponInventory);
             history = CouponHistory.successHistory(coupon.getId(), username, couponNumber);
         } catch (Exception e) {
             history = CouponHistory.failHistory(coupon.getId(), username, e.getMessage());

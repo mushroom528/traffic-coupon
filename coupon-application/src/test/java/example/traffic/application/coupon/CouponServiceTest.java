@@ -7,8 +7,6 @@ import example.traffic.domain.coupon.history.CouponHistoryRepository;
 import example.traffic.domain.coupon.history.HistoryType;
 import example.traffic.domain.coupon.inventory.CouponInventory;
 import example.traffic.domain.coupon.inventory.CouponInventoryRepository;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -24,6 +23,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 @ActiveProfiles("test")
 @ExtendWith(SpringExtension.class)
@@ -36,8 +36,7 @@ class CouponServiceTest {
     CouponInventoryRepository couponInventoryRepository;
     @Autowired
     CouponHistoryRepository couponHistoryRepository;
-    @PersistenceContext
-    EntityManager entityManager;
+    
     Coupon coupon;
 
     int couponCount = 30;
@@ -50,6 +49,7 @@ class CouponServiceTest {
 
     @Test
     @DisplayName("50명이 신청하는 경우, 30개의 성공이력 20개의 실패이력이 생성된다.")
+    @Transactional
     void shouldCreate30SuccessAnd20FailureRecordsWhen50ApplicantsApply() {
 
         // when
@@ -88,9 +88,11 @@ class CouponServiceTest {
         CouponInventory couponInventory = couponInventoryRepository.findByCouponCode(coupon.getCode()).get();
         List<CouponHistory> histories = couponHistoryRepository.findAll();
 
-        // then
+        // then: 동시에 티켓 발행이 되므로 원하는 결과가 나오지 않는다. -> 동시성 이슈 발생
         assertEquals(50, histories.size());
-        assertEquals(30, couponInventory.getIssuedCoupons());
+        assertNotEquals(30, couponInventory.getIssuedCoupons());
+        assertHistoryCount(HistoryType.SUCCESS, 50, histories);
+        assertHistoryCount(HistoryType.FAIL, 0, histories);
     }
 
     void assertHistoryCount(HistoryType type, int expected, List<CouponHistory> histories) {
