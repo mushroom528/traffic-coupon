@@ -1,6 +1,6 @@
 package example.traffic.application.coupon;
 
-import example.traffic.application.config.ApplicationConfig;
+import example.traffic.application.config.CouponConfig;
 import example.traffic.domain.coupon.Coupon;
 import example.traffic.domain.coupon.history.CouponHistory;
 import example.traffic.domain.coupon.history.CouponHistoryRepository;
@@ -23,11 +23,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 @ActiveProfiles("test")
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {ApplicationConfig.class})
+@ContextConfiguration(classes = {CouponConfig.class})
 class CouponServiceTest {
 
     @Autowired
@@ -36,7 +35,7 @@ class CouponServiceTest {
     CouponInventoryRepository couponInventoryRepository;
     @Autowired
     CouponHistoryRepository couponHistoryRepository;
-    
+
     Coupon coupon;
 
     int couponCount = 30;
@@ -85,14 +84,11 @@ class CouponServiceTest {
             countDownLatch.await();
         }
 
-        CouponInventory couponInventory = couponInventoryRepository.findByCouponCode(coupon.getCode()).get();
         List<CouponHistory> histories = couponHistoryRepository.findAll();
 
-        // then: 동시에 티켓 발행이 되므로 원하는 결과가 나오지 않는다. -> 동시성 이슈 발생
         assertEquals(50, histories.size());
-        assertNotEquals(30, couponInventory.getIssuedCoupons());
-        assertHistoryCount(HistoryType.SUCCESS, 50, histories);
-        assertHistoryCount(HistoryType.FAIL, 0, histories);
+        assertHistoryCount(HistoryType.SUCCESS, 30, histories);
+        assertHistoryCount(HistoryType.FAIL, 20, histories);
     }
 
     void assertHistoryCount(HistoryType type, int expected, List<CouponHistory> histories) {

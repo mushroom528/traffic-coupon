@@ -1,6 +1,6 @@
 package example.traffic.web.restapi.coupon;
 
-import example.traffic.application.coupon.CouponService;
+import example.traffic.application.coupon.CouponServiceV1;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class CouponRestController {
 
-    private final CouponService couponService;
+    private final CouponServiceV1 couponService;
 
     @PostMapping
     public void create(@RequestBody CreateCouponRequest request) {
