@@ -8,6 +8,7 @@ import example.traffic.domain.coupon.inventory.CouponInventory;
 import example.traffic.domain.coupon.inventory.CouponInventoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +19,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @RequiredArgsConstructor
 @Service
 @Slf4j
+@Primary
 public class CouponServiceV3 implements CouponService {
 
     private final CouponRepository couponRepository;
