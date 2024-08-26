@@ -9,8 +9,8 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 @Configuration
 public class DomainPropertiesConfig {
 
-    @Profile({"default"})
-    @PropertySource({"classpath:domain.properties"})
+    @Profile({"local"})
+    @PropertySource({"classpath:domain-local.properties", "classpath:domain.properties"})
     static class DomainProperties {
 
         @Bean
@@ -20,7 +20,7 @@ public class DomainPropertiesConfig {
     }
 
     @Profile({"test"})
-    @PropertySource({"classpath:domain-test.properties"})
+    @PropertySource({"classpath:domain-test.properties", "classpath:domain.properties"})
     static class DomainTestProperties {
 
         @Bean
