@@ -50,7 +50,11 @@ public interface CouponService {
 
 ### 구현체
 
-- `CouponServiceV1`: 멀티 스레드를 고려하지 않음
-- `CouponServiceV2`: `synchronized` 키워드를 사용해서 동기화
-- `CouponServiceV3`: `ReentrantLock`을 사용해서 동기화
-- `CouponServiceV4`: **Akka**를 통해 메세지 큐 기능을 사용
+- `CouponServiceV1`: 멀티 스레드를 고려하지
+  않음 [코드](https://github.com/mushroom528/traffic-coupon/blob/main/coupon-application/src/main/java/example/traffic/application/coupon/CouponServiceV1.java)
+- `CouponServiceV2`: `synchronized` 키워드를 사용해서
+  동기화 [코드](https://github.com/mushroom528/traffic-coupon/blob/main/coupon-application/src/main/java/example/traffic/application/coupon/CouponServiceV2.java)
+- `CouponServiceV3`: `ReentrantLock`을 사용해서
+  동기화 [코드](https://github.com/mushroom528/traffic-coupon/blob/main/coupon-application/src/main/java/example/traffic/application/coupon/CouponServiceV3.java)
+- `CouponServiceV4`: **Akka**를 통해 메세지 큐 기능을
+  사용 [코드](https://github.com/mushroom528/traffic-coupon/blob/main/coupon-application/src/main/java/example/traffic/application/coupon/CouponServiceV4.java)
