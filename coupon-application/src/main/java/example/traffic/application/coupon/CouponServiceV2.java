@@ -8,13 +8,11 @@ import example.traffic.domain.coupon.inventory.CouponInventory;
 import example.traffic.domain.coupon.inventory.CouponInventoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
 @RequiredArgsConstructor
-@Service
 @Slf4j
 public class CouponServiceV2 implements CouponService {
 

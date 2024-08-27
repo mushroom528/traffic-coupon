@@ -8,8 +8,6 @@ import example.traffic.domain.coupon.inventory.CouponInventory;
 import example.traffic.domain.coupon.inventory.CouponInventoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -17,9 +15,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 @RequiredArgsConstructor
-@Service
 @Slf4j
-@Primary
 public class CouponServiceV3 implements CouponService {
 
     private final CouponRepository couponRepository;
@@ -45,13 +41,13 @@ public class CouponServiceV3 implements CouponService {
      * lock을 획득하고 나서 작업을 종료되면 반드시 unlock()을 호출해줘야한다.
      */
     @Transactional
-    public synchronized void issueCoupon(String couponCode, String username) {
+    public void issueCoupon(String couponCode, String username) {
+        lock.lock();
         CouponInventory couponInventory = couponInventoryRepository.findByCouponCode(couponCode)
                 .orElseThrow(() -> new IllegalArgumentException("No inventory found for coupon code: " + couponCode));
 
         Coupon coupon = couponInventory.getCoupon();
         CouponHistory history;
-        lock.lock();
         try {
             String couponNumber = couponInventory.issueCoupon();
             couponInventoryRepository.save(couponInventory);

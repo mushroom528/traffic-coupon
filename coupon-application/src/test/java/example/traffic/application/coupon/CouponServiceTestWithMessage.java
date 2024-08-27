@@ -19,25 +19,31 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ActiveProfiles("test")
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {CouponConfig.class})
-class CouponServiceTest {
+class CouponServiceTestWithMessage {
+
+    CouponService couponService;
+    CouponInventoryRepository couponInventoryRepository;
+    CouponHistoryRepository couponHistoryRepository;
+    CouponRepository couponRepository;
+    CouponService sut;
 
     @Autowired
-    CouponService sut;
-    @Autowired
-    CouponInventoryRepository couponInventoryRepository;
-    @Autowired
-    CouponHistoryRepository couponHistoryRepository;
-    @Autowired
-    CouponRepository couponRepository;
+    public CouponServiceTestWithMessage(CouponService couponService, CouponInventoryRepository couponInventoryRepository, CouponHistoryRepository couponHistoryRepository, CouponRepository couponRepository) {
+        this.couponService = couponService;
+        this.couponInventoryRepository = couponInventoryRepository;
+        this.couponHistoryRepository = couponHistoryRepository;
+        this.couponRepository = couponRepository;
+        this.sut = new CouponServiceV4(couponService);
+    }
 
     Coupon coupon;
 
@@ -57,41 +63,19 @@ class CouponServiceTest {
     }
 
     @Test
-    @DisplayName("50명이 신청하는 경우, 30개의 성공이력 20개의 실패이력이 생성된다.")
-    void shouldCreate30SuccessAnd20FailureRecordsWhen50ApplicantsApply() {
-
-        // when
-        for (int i = 0; i < requestCount; i++) {
-            sut.issueCoupon(coupon.getCode(), "USER");
-        }
-        CouponInventory couponInventory = couponInventoryRepository.findByCouponCode(coupon.getCode()).get();
-        List<CouponHistory> histories = couponHistoryRepository.findAll();
-
-        // then
-        assertEquals(50, histories.size());
-        assertEquals(30, couponInventory.getIssuedCoupons());
-        assertHistoryCount(HistoryType.SUCCESS, 30, histories);
-        assertHistoryCount(HistoryType.FAIL, 20, histories);
-    }
-
-    @Test
     @DisplayName("동시에 50명이 신청하는 경우, 30개의 성공이력 20개의 실패이력이 생성된다.")
     void shouldCreate30SuccessAnd20FailureRecordsWhen50ApplicantsApplyConcurrently() throws InterruptedException {
 
         // when
         try (ExecutorService executorService = Executors.newFixedThreadPool(32)) {
-            CountDownLatch countDownLatch = new CountDownLatch(requestCount);
             for (int i = 0; i < requestCount; i++) {
                 executorService.submit(() -> {
-                    try {
-                        sut.issueCoupon(coupon.getCode(), "USER");
-                    } finally {
-                        countDownLatch.countDown();
-                    }
+                    sut.issueCoupon(coupon.getCode(), "USER");
                 });
             }
-            countDownLatch.await();
         }
+
+        TimeUnit.MILLISECONDS.sleep(500);   // 메세지를 통해 별도의 스레드에서 작업을 처리하기 때문에 일정 시간 대기
 
         CouponInventory couponInventory = couponInventoryRepository.findByCouponCode(coupon.getCode()).get();
         List<CouponHistory> histories = couponHistoryRepository.findAll();

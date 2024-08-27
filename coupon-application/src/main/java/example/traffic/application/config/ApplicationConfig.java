@@ -7,6 +7,6 @@ import org.springframework.context.annotation.Import;
 
 @Configuration
 @ComponentScan(basePackages = "example.traffic.application")
-@Import(DomainConfig.class)
+@Import({DomainConfig.class, CouponConfig.class})
 public class ApplicationConfig {
 }
