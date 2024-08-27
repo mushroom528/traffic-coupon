@@ -52,12 +52,13 @@ public class CouponServiceV3 implements CouponService {
             String couponNumber = couponInventory.issueCoupon();
             couponInventoryRepository.save(couponInventory);
             history = CouponHistory.successHistory(coupon.getId(), username, couponNumber);
+            couponHistoryRepository.save(history);
         } catch (Exception e) {
             history = CouponHistory.failHistory(coupon.getId(), username, e.getMessage());
+            couponHistoryRepository.save(history);
         } finally {
             lock.unlock();
         }
-        couponHistoryRepository.save(history);
     }
 
 }
