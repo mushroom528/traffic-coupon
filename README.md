@@ -60,3 +60,123 @@ public interface CouponService {
   동기화 [코드](https://github.com/mushroom528/traffic-coupon/blob/main/coupon-application/src/main/java/example/traffic/application/coupon/CouponServiceV4.java)
 - `CouponServiceV5`: **Akka**를 통해 메세지 큐 기능을
   사용 [코드](https://github.com/mushroom528/traffic-coupon/blob/main/coupon-application/src/main/java/example/traffic/application/coupon/CouponServiceV5.java)
+
+## 테스트
+
+### 서비스 로직 테스트
+
+- **junit**을 사용한다.
+
+```java
+
+@ActiveProfiles("test")
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = {CouponConfig.class})
+class CouponServiceTest {
+
+    @Autowired
+    CouponService sut;
+    @Autowired
+    CouponInventoryRepository couponInventoryRepository;
+    @Autowired
+    CouponHistoryRepository couponHistoryRepository;
+    @Autowired
+    CouponRepository couponRepository;
+
+    Coupon coupon;
+
+    int couponCount = 30;
+    int requestCount = 50;
+
+    @BeforeEach
+    void setUp() {
+        coupon = sut.createCoupon("테스트쿠폰1", "COUPON-1", couponCount);
+    }
+
+    @AfterEach
+    void tearDown() {
+        couponInventoryRepository.deleteAll();
+        couponHistoryRepository.deleteAll();
+        couponRepository.deleteAll();
+    }
+
+    @Test
+    @DisplayName("50명이 신청하는 경우, 30개의 성공이력 20개의 실패이력이 생성된다.")
+    void shouldCreate30SuccessAnd20FailureRecordsWhen50ApplicantsApply() {
+
+        // when
+        for (int i = 0; i < requestCount; i++) {
+            sut.issueCoupon(coupon.getCode(), "USER");
+        }
+        CouponInventory couponInventory = couponInventoryRepository.findByCouponCode(coupon.getCode()).get();
+        List<CouponHistory> histories = couponHistoryRepository.findAll();
+
+        // then
+        assertEquals(50, histories.size());
+        assertEquals(30, couponInventory.getIssuedCoupons());
+        assertHistoryCount(HistoryType.SUCCESS, 30, histories);
+        assertHistoryCount(HistoryType.FAIL, 20, histories);
+    }
+
+    @Test
+    @DisplayName("동시에 50명이 신청하는 경우, 30개의 성공이력 20개의 실패이력이 생성된다.")
+    void shouldCreate30SuccessAnd20FailureRecordsWhen50ApplicantsApplyConcurrently() throws InterruptedException {
+
+        // when
+        try (ExecutorService executorService = Executors.newFixedThreadPool(32)) {
+            CountDownLatch countDownLatch = new CountDownLatch(requestCount);
+            for (int i = 0; i < requestCount; i++) {
+                executorService.submit(() -> {
+                    try {
+                        sut.issueCoupon(coupon.getCode(), "USER");
+                    } finally {
+                        countDownLatch.countDown();
+                    }
+                });
+            }
+            countDownLatch.await();
+        }
+
+        CouponInventory couponInventory = couponInventoryRepository.findByCouponCode(coupon.getCode()).get();
+        List<CouponHistory> histories = couponHistoryRepository.findAll();
+
+        assertEquals(50, histories.size());
+        assertEquals(30, couponInventory.getIssuedCoupons());
+        assertHistoryCount(HistoryType.SUCCESS, 30, histories);
+        assertHistoryCount(HistoryType.FAIL, 20, histories);
+    }
+
+    void assertHistoryCount(HistoryType type, int expected, List<CouponHistory> histories) {
+        long count = histories.stream().filter(history -> history.getHistoryType() == type).count();
+        assertEquals(expected, count);
+    }
+
+}
+```
+
+- `CouponService`의 구현체를 변경하면서 테스트를 진행한다.
+- 구현체 변경은 `CouponConfing`에서 변경한다.
+- 동시성을 고려하지 않은 `CouponServiceV1`에서는 아래와 같이 테스트 결과가 나올 것이다.
+
+```shell
+Expected :30
+Actual   :12
+<Click to see difference>
+
+org.opentest4j.AssertionFailedError: expected: <30> but was: <12>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:197)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:150)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:145)
+	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:531)
+	at example.traffic.application.coupon.CouponServiceTest.shouldCreate30SuccessAnd20FailureRecordsWhen50ApplicantsApplyConcurrently(CouponServiceTest.java:100)
+```
+
+- 동시성 이슈가 발생하여 테스트가 실패한다.
+- `CouponServiceV1`이 아닌 다른 구현체로 테스트를 진행하면 모든 테스트가 성공한다.
+    - 구현체마다 테스트 소요 시간이 다를 것이다.
+
+### API 부하 테스트
+
+- **gatling**을 사용한다.
