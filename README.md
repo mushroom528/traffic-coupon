@@ -56,5 +56,7 @@ public interface CouponService {
   동기화 [코드](https://github.com/mushroom528/traffic-coupon/blob/main/coupon-application/src/main/java/example/traffic/application/coupon/CouponServiceV2.java)
 - `CouponServiceV3`: `ReentrantLock`을 사용해서
   동기화 [코드](https://github.com/mushroom528/traffic-coupon/blob/main/coupon-application/src/main/java/example/traffic/application/coupon/CouponServiceV3.java)
-- `CouponServiceV4`: **Akka**를 통해 메세지 큐 기능을
-  사용 [코드](https://github.com/mushroom528/traffic-coupon/blob/main/coupon-application/src/main/java/example/traffic/application/coupon/CouponServiceV4.java)
+- `CouponServiceV4`: CAS 연산을 통한 `spin lock`을 사용해서
+  동기화 [코드](https://github.com/mushroom528/traffic-coupon/blob/main/coupon-application/src/main/java/example/traffic/application/coupon/CouponServiceV4.java)
+- `CouponServiceV5`: **Akka**를 통해 메세지 큐 기능을
+  사용 [코드](https://github.com/mushroom528/traffic-coupon/blob/main/coupon-application/src/main/java/example/traffic/application/coupon/CouponServiceV5.java)

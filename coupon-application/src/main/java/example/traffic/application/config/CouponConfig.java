@@ -2,7 +2,7 @@ package example.traffic.application.config;
 
 import example.traffic.application.coupon.CouponService;
 import example.traffic.application.coupon.CouponServiceV1;
-import example.traffic.application.coupon.CouponServiceV4;
+import example.traffic.application.coupon.CouponServiceV5;
 import example.traffic.domain.coupon.CouponRepository;
 import example.traffic.domain.coupon.history.CouponHistoryRepository;
 import example.traffic.domain.coupon.inventory.CouponInventoryRepository;
@@ -22,7 +22,7 @@ public class CouponConfig {
     @Bean
     @Primary
     public CouponService couponProxyService() {
-        return new CouponServiceV4(couponService());
+        return new CouponServiceV5(couponService());
     }
 
     @Bean

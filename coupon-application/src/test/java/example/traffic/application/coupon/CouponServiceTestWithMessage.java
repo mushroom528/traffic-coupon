@@ -42,7 +42,7 @@ class CouponServiceTestWithMessage {
         this.couponInventoryRepository = couponInventoryRepository;
         this.couponHistoryRepository = couponHistoryRepository;
         this.couponRepository = couponRepository;
-        this.sut = new CouponServiceV4(couponService);
+        this.sut = new CouponServiceV5(couponService);
     }
 
     Coupon coupon;
