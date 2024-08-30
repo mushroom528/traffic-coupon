@@ -1,8 +1,8 @@
 # 📚 traffic-coupon
 
+- 인프런 강의 `김영한의 실전 자바 - 고급 1편, 멀티스레드와 동시성` 을 들으면서 배운것을 응용하기 위해 만든 프로젝트
 - 동시에 쿠폰을 발행하면 어떻게 될까?
-- 개인 공부용 프로젝트
-    - `Concurrent`, `Multi Thread`
+- **스레드 동기화**, **동시성 처리**
 
 ## 🛠️ Tech Stack
 
@@ -180,3 +180,58 @@ org.opentest4j.AssertionFailedError: expected: <30> but was: <12>
 ### API 부하 테스트
 
 - **gatling**을 사용한다.
+- 자세한 사용방법은 아래의 링크를 참고하였다.
+    - [블로그](https://code-run.tistory.com/42)
+    - [gatling 공식문서](https://docs.gatling.io/)
+- 처음 사용해보기 때문에 간단하게 샘플을 만들었다.
+
+**샘플 코드**
+
+```java
+
+@RestController
+@RequestMapping("/api/gatling")
+public class GatlingSampleRestController {
+
+    @GetMapping()
+    public String sample() throws InterruptedException {
+        TimeUnit.SECONDS.sleep(1);
+        return "Hello World";
+    }
+}
+```
+
+- 해당 API는 요청을 받으면 1초동안 대기한다.
+
+```java
+public class SampleApiSimulator extends Simulation {
+    private static final String BASE_URL = "http://localhost:8080";
+
+    ScenarioBuilder scn = scenario("Gatling Sample Test")
+            .exec(http("GET /api/gatling")
+                    .get("/api/gatling")
+                    .check(status().is(200))
+                    .check(bodyString().is("Hello World"))
+            );
+
+    {
+        setUp(
+                scn.injectClosed(constantConcurrentUsers(10).during(10))
+        ).protocols(
+                http.baseUrl(BASE_URL)
+        );
+    }
+}
+```
+
+- 샘플 API에 요청을 보내는 테스트
+- `setUp`블록에서 가상의 유저를 설정할 수 있음.
+- 10명의 유저가 10초 동안 동시에 요청하는 시나리오
+- 테스트 실행: `mvn gatling:test -Dgatling.simulationClass=example.gatling.SampleApiSimulator`
+- 실행이 완료 되면 결과를 확인할 수 있도록 리포트가 생성된다.
+    - 리포트 위치: target/gatling 하위 디렉토리의 `index.html`
+      ![img.png](images/img1.png)
+    - 요청 횟수 100
+    - 모든 요청이 800ms ~ 1200ms 이내에 처리되었음
+    - 99%의 요청이 1014ms 이내에 처리되었음
+- 

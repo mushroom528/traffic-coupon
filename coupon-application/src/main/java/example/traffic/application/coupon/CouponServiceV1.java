@@ -8,6 +8,7 @@ import example.traffic.domain.coupon.inventory.CouponInventory;
 import example.traffic.domain.coupon.inventory.CouponInventoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -29,6 +30,7 @@ public class CouponServiceV1 implements CouponService {
         return coupon;
     }
 
+    @Transactional
     public void issueCoupon(String couponCode, String username) {
         CouponInventory couponInventory = couponInventoryRepository.findByCouponCode(couponCode)
                 .orElseThrow(() -> new IllegalArgumentException("No inventory found for coupon code: " + couponCode));

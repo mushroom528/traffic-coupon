@@ -30,7 +30,10 @@ public class CouponApiSimulator extends Simulation {
                  * during: y
                  * x 명의 유저가 y초 동안 동시에 요청
                  */
-                couponScenario.injectClosed(constantConcurrentUsers(100).during(18))
+//                couponScenario.injectClosed(constantConcurrentUsers(100).during(5))
+//                        .protocols(httpProtocol),
+
+                couponScenario.injectOpen(atOnceUsers(50))
                         .protocols(httpProtocol)
         );
 

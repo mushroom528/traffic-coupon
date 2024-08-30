@@ -19,10 +19,9 @@ public class SampleApiSimulator extends Simulation {
 
     {
         setUp(
-                scn.injectOpen(rampUsersPerSec(10).to(300).during(120))
+                scn.injectClosed(constantConcurrentUsers(10).during(10))
         ).protocols(
                 http.baseUrl(BASE_URL)
         );
     }
-
 }
