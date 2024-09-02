@@ -11,6 +11,15 @@ import static io.gatling.javaapi.http.HttpDsl.status;
 
 public class CouponApiSimulator extends Simulation {
 
+
+    ChainBuilder setupRequest = exec(
+            http("coupon-setup")
+                    .post("")
+                    .body(StringBody("{ \"name\": \"기본쿠폰\", \"code\": \"CODE-1\", \"total\": \"50\" }"))
+                    .check(status().is(200)) // 상태 코드 200 확인
+    );
+    ScenarioBuilder setupScenario = scenario("setup").exec(setupRequest);
+
     ChainBuilder coupon = exec(
             http("Coupon-test")
                     .post("/issue")
@@ -19,12 +28,12 @@ public class CouponApiSimulator extends Simulation {
     );
 
     ScenarioBuilder couponScenario = scenario("coupon issue test").exec(coupon);
-    HttpProtocolBuilder httpProtocol = http.baseUrl("http://localhost:8080/api/coupon")
-            .acceptHeader("application/json")
-            .contentTypeHeader("application/json");
+    HttpProtocolBuilder httpProtocol = http.baseUrl("http://localhost:8080/api/coupon").acceptHeader("application/json").contentTypeHeader("application/json");
+
 
     {
         setUp(
+
                 /**
                  * constantConcurrentUsers: x
                  * during: y
@@ -32,10 +41,10 @@ public class CouponApiSimulator extends Simulation {
                  */
 //                couponScenario.injectClosed(constantConcurrentUsers(100).during(5))
 //                        .protocols(httpProtocol),
-
-                couponScenario.injectOpen(atOnceUsers(50))
-                        .protocols(httpProtocol)
-        );
-
+                setupScenario.injectOpen(atOnceUsers(1)).protocols(httpProtocol)
+                        .andThen(
+                                couponScenario.injectClosed(constantConcurrentUsers(10).during(10))
+                                        .protocols(httpProtocol)
+                        ));
     }
 }

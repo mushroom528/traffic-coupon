@@ -234,4 +234,113 @@ public class SampleApiSimulator extends Simulation {
     - 요청 횟수 100
     - 모든 요청이 800ms ~ 1200ms 이내에 처리되었음
     - 99%의 요청이 1014ms 이내에 처리되었음
-- 
+
+**구현된 코드로 부하 테스트**
+
+```java
+
+@Configuration
+@RequiredArgsConstructor
+public class CouponConfig {
+
+    private final CouponRepository couponRepository;
+    private final CouponInventoryRepository couponInventoryRepository;
+    private final CouponHistoryRepository couponHistoryRepository;
+
+    @Bean
+    public CouponService couponProxyService() {
+        return new CouponServiceV5(couponService());
+    }
+
+    @Bean
+    @Primary
+    public CouponService couponService() {
+        return new CouponServiceV2(
+                couponRepository,
+                couponInventoryRepository,
+                couponHistoryRepository
+        );
+    }
+}
+```
+
+- `CouponServiceV2`(`synchronized`) 구현체를 사용하여 부하 테스트를 진행한다.
+
+```java
+public class CouponApiSimulator extends Simulation {
+
+
+    ChainBuilder setupRequest = exec(
+            http("coupon-setup")
+                    .post("")
+                    .body(StringBody("{ \"name\": \"기본쿠폰\", \"code\": \"CODE-1\", \"total\": \"50\" }"))
+                    .check(status().is(200)) // 상태 코드 200 확인
+    );
+    ScenarioBuilder setupScenario = scenario("setup").exec(setupRequest);
+
+    ChainBuilder coupon = exec(
+            http("Coupon-test")
+                    .post("/issue")
+                    .body(StringBody("{ \"code\": \"CODE-1\", \"username\": \"hyokwon\" }"))
+                    .check(status().is(200)) // 상태 코드 200 확인
+    );
+
+    ScenarioBuilder couponScenario = scenario("coupon issue test").exec(coupon);
+    HttpProtocolBuilder httpProtocol = http.baseUrl("http://localhost:8080/api/coupon").acceptHeader("application/json").contentTypeHeader("application/json");
+
+    {
+        setUp(
+                setupScenario.injectOpen(atOnceUsers(1)).protocols(httpProtocol)
+                        .andThen(
+                                couponScenario.injectClosed(constantConcurrentUsers(10).during(10))
+                                        .protocols(httpProtocol)
+                        ));
+    }
+}
+```
+
+- 10명의 유저가 10초동안 동시에 요청하는 시나리오
+- 쿠폰 생성 API를 먼저 호출 한 뒤에 쿠폰 발행 API 를 동시에 호출
+- 쿠폰: 50개 제한
+
+**Detail Report 확인**
+![img.png](images/img.png)
+
+- 16,184 개의 요청을 처리
+- 모든 요청은 800 ms 이내에 처리됨.
+
+![img.png](images/img2.png)
+
+- 응답 시간에 대한 백분위수
+- min, 25%, 50%, 75% 등 낮은 백분위수는 바닥에 깔려있어 평균적인 응답 시간이 짧다는 것을 알 수 있음.
+- 반면, 99%, max 백분위수는 상대적으로 높게 나타나는데, 이는 일부 요청이 높은 응답 시간을 기록했음을 의미.
+
+## 테스트 진행하는 동안 겪은 문제
+
+### 부하테스트 시 발생한 동시성 이슈
+
+```mariadb
+select count(*) as success_count
+from coupon_history
+where historyType = 'SUCCESS';
+```
+
+- 부하 테스트를 진행하고 나서, 해당 쿼리를 통해 성공적으로 발급한 쿠폰의 개수를 확인함 -> 예상되는 개수: 50개
+
+![img.png](images/query_result.png)
+
+- 하지만 예상되는 결과와 다른 개수가 출력됨
+
+**원인**
+
+- 임계 영역 동기화를 잘 못 설정함
+    - 실제로 여러 스레드가 접근하면 안되는 곳은 데이터베이스 영역
+    - 따라서 메서드에 `sychronized` 키워드를 선언해도 데이터베이스 조회 시 여러 스레드가 같은 결과를 받아올 수 있음
+        - 해당 로직(`couponService.issueCoupon()`)을 수행하고나서 데이터베이스에 `commit` 되기 전에 다른 스레드에서 로직 수행하면서 `commit` 되기 전의 데이터를 조회함
+    - 다른 트랜잭션에서 `commit` 한 뒤에 다른 트랜잭션에서 접근 하도록 해야함
+
+**해결 방법**
+
+- Database Lock을 사용한다.
+    - 해당 row에 접근 하는 동안 다른 트랙잭션에서 접근할 수 없도록 Lock을 설정한다.
+- 메세지 큐를 사용해서 받은 순서대로 순차적으로 처리할 수 있도록 한다.
