@@ -344,3 +344,38 @@ where historyType = 'SUCCESS';
 - Database Lock을 사용한다.
     - 해당 row에 접근 하는 동안 다른 트랙잭션에서 접근할 수 없도록 Lock을 설정한다.
 - 메세지 큐를 사용해서 받은 순서대로 순차적으로 처리할 수 있도록 한다.
+
+**Database Lock 사용**
+
+```java
+public class CouponInventoryRepositoryImpl implements CouponInventoryCustomRepository {
+
+    private final JPAQueryFactory queryFactory;
+
+    @Override
+    public Optional<CouponInventory> findByCouponCode(String couponCode) {
+        CouponInventory result = queryFactory.selectFrom(couponInventory)
+                .innerJoin(couponInventory.coupon, coupon)
+                .fetchJoin()
+                .where(coupon.code.eq(couponCode))
+                .setLockMode(LockModeType.PESSIMISTIC_WRITE)
+                .fetchOne();
+
+        return Optional.ofNullable(result);
+    }
+}
+```
+
+- `findByCouponCode`에서 Lock 설정
+    - `LockModeType.PESSIMISTIC_WRITE`: 비관적락, 조회 시 데이터베이스에 직접 lock을 설정(Exclusive Lock: `select ~ for update`)
+- 결과 확인  
+  ![img_1.png](images/img_1-1.png)
+- 16,640 개의 요청을 처리함  
+  ![img_2.png](images/img_2-1.png)
+- 정해진 쿠폰 개수대로 발행됨
+
+**메세지 큐 사용**
+
+- Akka의 Actor 기능을 사용
+- Actor 내부에는 MailBox라고 하는 메세지 큐가 있어 받은 메세지를 순차적으로 처리할 수 있음
+- 해당 방식도 동일하게 발행한 쿠폰 개수만큼 쿠폰이 발급되는 것을 확인할 수 있었음

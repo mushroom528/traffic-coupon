@@ -1,6 +1,7 @@
 package example.traffic.domain.coupon.inventory;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import jakarta.persistence.LockModeType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -21,6 +22,7 @@ public class CouponInventoryRepositoryImpl implements CouponInventoryCustomRepos
                 .innerJoin(couponInventory.coupon, coupon)
                 .fetchJoin()
                 .where(coupon.code.eq(couponCode))
+                .setLockMode(LockModeType.PESSIMISTIC_WRITE)
                 .fetchOne();
 
         return Optional.ofNullable(result);

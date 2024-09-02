@@ -37,7 +37,7 @@ public class CouponServiceV2 implements CouponService {
      * 임계영역에만 synchronized 키워드를 사용해서 부분적으로 락을 설정하는 방법이 있다. -> 이 부분이 더 효율적
      */
     @Transactional
-    public synchronized void issueCoupon(String couponCode, String username) {
+    public void issueCoupon(String couponCode, String username) {
         CouponInventory couponInventory = couponInventoryRepository.findByCouponCode(couponCode)
                 .orElseThrow(() -> new IllegalArgumentException("No inventory found for coupon code: " + couponCode));
 
