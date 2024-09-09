@@ -384,3 +384,10 @@ public class CouponInventoryRepositoryImpl implements CouponInventoryCustomRepos
 - Akka의 Actor 기능을 사용
 - Actor 내부에는 MailBox라고 하는 메세지 큐가 있어 받은 메세지를 순차적으로 처리할 수 있음
 - 해당 방식도 동일하게 발행한 쿠폰 개수만큼 쿠폰이 발급되는 것을 확인할 수 있었음
+
+## 결론
+
+- 동시성 이슈가 발생 시 어떤 부분에서 동시성 이슈가 발생하는지 파악해야한다.
+- 그 부분을 중심으로 해결해 나가야한다.
+- Coupon 발급할 때 발생한 동시성 문제의 해결을 위해서는 Database Lock 또는 메세지 큐를 사용하는 방법이 있었다.
+    - JVM 단위의 Lock 을 설정하는 것은 적절한 방법이 아니다.
