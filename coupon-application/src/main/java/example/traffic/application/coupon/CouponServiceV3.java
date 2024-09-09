@@ -1,5 +1,6 @@
 package example.traffic.application.coupon;
 
+import example.traffic.application.aspect.LockSync;
 import example.traffic.domain.coupon.Coupon;
 import example.traffic.domain.coupon.CouponRepository;
 import example.traffic.domain.coupon.history.CouponHistory;
@@ -11,8 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -21,8 +20,6 @@ public class CouponServiceV3 implements CouponService {
     private final CouponRepository couponRepository;
     private final CouponInventoryRepository couponInventoryRepository;
     private final CouponHistoryRepository couponHistoryRepository;
-
-    private final Lock lock = new ReentrantLock();
 
     @Transactional
     public Coupon createCoupon(String name, String code, int totalCoupons) {
@@ -41,8 +38,8 @@ public class CouponServiceV3 implements CouponService {
      * lock을 획득하고 나서 작업을 종료되면 반드시 unlock()을 호출해줘야한다.
      */
     @Transactional
+    @LockSync
     public void issueCoupon(String couponCode, String username) {
-        lock.lock();
         CouponInventory couponInventory = couponInventoryRepository.findByCouponCode(couponCode)
                 .orElseThrow(() -> new IllegalArgumentException("No inventory found for coupon code: " + couponCode));
 
@@ -56,8 +53,6 @@ public class CouponServiceV3 implements CouponService {
         } catch (Exception e) {
             history = CouponHistory.failHistory(coupon.getId(), username, e.getMessage());
             couponHistoryRepository.save(history);
-        } finally {
-            lock.unlock();
         }
     }
 
