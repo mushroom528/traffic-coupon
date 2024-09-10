@@ -349,6 +349,9 @@ where historyType = 'SUCCESS';
 
 - 테스트 코드에서는 `@Transactional`을 선언하지 않고 테스트를 진행했기때문
 - 테스트 코드가 역할을 수행하지 못한 상황이 발생했다. -> 테스트는 성공 했지만, 실제 환경에서는 실패해버림..
+- 동시성 테스트 시 `@Transactional`을 통한 롤백 기능을 사용할때는 몇 가지 제약사항이 있다. 이는 스프링 공식 문서에도 나타나있음
+- [스프링 공식 문서1](https://docs.spring.io/spring-framework/reference/testing/testcontext-framework/parallel-test-execution.html)
+- [스프링 공식 문서2](https://docs.spring.io/spring-framework/reference/testing/testcontext-framework/tx.html)
 
 **Database Lock 사용**
 
