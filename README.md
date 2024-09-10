@@ -390,4 +390,4 @@ public class CouponInventoryRepositoryImpl implements CouponInventoryCustomRepos
 - 동시성 이슈가 발생 시 어떤 부분에서 동시성 이슈가 발생하는지 파악해야한다.
 - 그 부분을 중심으로 해결해 나가야한다.
 - Coupon 발급할 때 발생한 동시성 문제의 해결을 위해서는 Database Lock 또는 메세지 큐를 사용하는 방법이 있었다.
-    - JVM 단위의 Lock 을 설정하는 것은 적절한 방법이 아니다.
+    - 위와 같이 JVM 단위의 Lock(`synchronized`, `ReentrantLock`, `CAS Spin Lock`) 을 설정하는 것은 적절한 방법이 아니다.
